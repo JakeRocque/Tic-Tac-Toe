@@ -2,9 +2,13 @@ const squares = Array.from(document.getElementsByClassName('square'));
 const messageText = document.getElementById('turn-text');
 const resetButton = document.getElementById('resetButton')
 
-let turnX = true;
 let board = ['', '', '', '', '', '', '', '', ''];
-let isWin = false
+let turnX = true;
+let isWin = false;
+let isTie = false;
+
+let colorAnimationOn = false;
+let textColorAnimator;
 
 const winConditions = [
     [0, 1, 2],
@@ -24,22 +28,29 @@ resetButton.addEventListener('click', resetBoard);
 
 
 function handleClick(event) {
-    const cell = event.target;
-    const index = squares.indexOf(cell);
-    
-    if (board[index] == '') {
-        currentPlayer = turnX ? 'X' : 'O';
+    if (!isWin && !isTie) {
+        const cell = event.target;
+        const index = squares.indexOf(cell);
+        
+        if (board[index] == '') {
+            currentPlayer = turnX ? 'X' : 'O';
 
-        board[index] = currentPlayer;
-        cell.innerHTML = currentPlayer;
+            board[index] = currentPlayer;
+            cell.innerHTML = currentPlayer;
 
-        checkWin(winConditions, currentPlayer);
-        if (isWin) {
-            return
+            checkWin(winConditions, currentPlayer);
+            if (isWin) {
+                return
+            }
+
+            checkTie()
+            if (isTie) {
+                return
+            }
+
+            changeTurn(turnX);
+            turnX = !turnX;
         }
-
-        changeTurn(turnX);
-        turnX = !turnX;
     }
 }
 
@@ -66,9 +77,22 @@ function checkWin(winConditions, currentPlayer) {
         }
         if (isWin) {
         messageText.innerHTML = `${currentPlayer} wins!`;
-        animateTextColor(messageText, 6)
+        startColorAnimation(messageText, 6)
         break;
         }
+    }
+}
+
+function checkTie() {
+    isTie = true;
+    for (cell of board) {
+        if (cell == '') {
+            isTie = false;
+            break;
+        }
+    }
+    if (isTie) {
+        messageText.innerHTML = 'Tie';
     }
 }
 
@@ -83,24 +107,39 @@ function resetBoard() {
     messageText.style.color = 'white';
 
     isWin = false;
+
+    stopColorAnimation()
 }
 
 function animateTextColor(text, interval) {
-    let red = 0
+    let red = 255
     let green = 255
-    let blue = 0
+    let blue = 255
+    let increasing = false
 
-    setInterval(() => {
-        if (red >= 255 || green >= 255 || blue >= 255) {
+    const textColorAnimator = setInterval(() => {
+        if (red >= 255) {
             increasing = false;
-        } else if (red <= 0 || green <= 0 || blue <= 0) {
-            increasing = true
+        } else if (red <= 0) {
+            increasing = true;
         }
 
-        red += increasing ? 1 : -1
-        green += increasing ? 1 : -1
-        blue += increasing ? 1 : -1
+        red += increasing ? 1 : -1;
+        green += increasing ? 1 : -1;
+        blue += increasing ? 1 : -1;
 
         text.style.color = `rgb(${red}, ${green}, ${blue})`;
-    }, interval)
+
+    
+    }, interval);
+
+    return textColorAnimator;
+}
+
+function startColorAnimation(text, interval) {
+    textColorAnimator = animateTextColor(text, interval);
+}
+
+function stopColorAnimation() {
+    clearInterval(textColorAnimator);
 }
