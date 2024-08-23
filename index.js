@@ -107,6 +107,7 @@ function resetBoard() {
     messageText.style.color = 'white';
 
     isWin = false;
+    isTie = false;
 
     stopColorAnimation()
 }
